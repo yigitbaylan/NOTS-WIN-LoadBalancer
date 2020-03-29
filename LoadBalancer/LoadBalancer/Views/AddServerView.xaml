@@ -1,0 +1,32 @@
+﻿<Window x:Class="LoadBalancer.Views.AddServerView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LoadBalancer.Views"
+        mc:Ignorable="d"
+        SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen"
+        ContentRendered="Window_ContentRendered"
+        Title="Add Server">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Image Source="..\Assets\Images\server.png" Width="50" Height="50" Grid.RowSpan="2" Margin="20,0,20,0" />
+
+        <TextBox Name="txtHost" Grid.Column="1" MinWidth="250">Host</TextBox>
+        <TextBox Name="txtPort" Grid.Column="1" Grid.Row="1" MinWidth="250" Margin="0,5,0,0">Port</TextBox>
+
+        <WrapPanel Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button IsDefault="True" Name="btnDialogOk" Click="btnDialogOk_Click" MinWidth="60" Margin="0,0,10,0">_Toevoegen</Button>
+            <Button IsCancel="True" MinWidth="60">_Annuleren</Button>
+        </WrapPanel>
+    </Grid>
+</Window>

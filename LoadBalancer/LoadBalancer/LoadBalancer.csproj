@@ -13,4 +13,14 @@
     <Page Remove="ViewModel\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Assets\Images\server.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Images\server.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
 </Project>

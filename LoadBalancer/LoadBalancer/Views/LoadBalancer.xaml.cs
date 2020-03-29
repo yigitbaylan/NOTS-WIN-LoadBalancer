@@ -1,4 +1,7 @@
-﻿using System;
+﻿using LoadBalancer.Models;
+using LoadBalancer.ViewModels;
+using LoadBalancer.Views;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,11 +21,39 @@ namespace LoadBalancer
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class LoadBalancerView : Window
     {
-        public MainWindow()
+        private LoadBalancerViewModel loadBalancerViewModal;
+        public LoadBalancerView()
         {
             InitializeComponent();
+            loadBalancerViewModal = new LoadBalancerViewModel();
+            DataContext = loadBalancerViewModal;
+        }
+
+        private void ClearLog_Click(object sender, RoutedEventArgs e)
+        {
+            loadBalancerViewModal.ClearLogs();
+        }
+
+        private void AddServer_Click(object sender, RoutedEventArgs e)
+        {
+            AddServerView inputDialog = new AddServerView();
+            string host;
+            int port;
+            if (inputDialog.ShowDialog() == true)
+            {
+                host = inputDialog.Host;
+                port = int.Parse(inputDialog.Port);
+                loadBalancerViewModal.AddServer(host, port);
+            }
+        }
+
+        private void RemoveServer_Click(object sender, RoutedEventArgs e)
+        {
+            // TODO Confirmation Dialog
+            ServerModel server = (ServerModel)ServerList.SelectedItems[0];
+            loadBalancerViewModal.RemoveServer(server);
         }
     }
 }

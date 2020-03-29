@@ -1,5 +1,7 @@
-﻿using System;
+﻿using LoadBalancer.DataTypes;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Threading;
@@ -10,16 +12,69 @@ namespace LoadBalancer.Models
     {
         private TcpListener tcpListener;
         public int Port { get; set; }
+        public string StartStopBtn { get; }
         public bool LoadBalancerIsRunning { get; set; }
+        public ObservableCollection<LogModel> Logs { get; }
+        public ObservableCollection<ServerModel> Servers { get; }
         private Dispatcher Dispatcher;
 
         public LoadBalancerModel()
         {
             Port = 8080;
+            StartStopBtn = "Start";
             LoadBalancerIsRunning = false;
+            Logs = new ObservableCollection<LogModel>();
+            Servers = new ObservableCollection<ServerModel>();
             Dispatcher = Dispatcher.CurrentDispatcher;
+            AddLog(LogType.Debug, "Debugging, it Works!");  
         }
 
+        public void AddServer(string host, int port)
+        {
+            if (IsServerAlreadyExisting(host, port))
+                AddLog(LogType.Server, "Server already exist");
+            else
+            {
+                try
+                {
+                    ServerModel serverModel = new ServerModel(host, port);
+                    Servers.Add(serverModel);
+                }
+                catch (Exception)
+                {
+                    AddLog(LogType.Server, "Unable to add server");
+                }
+            }
+        }
+
+        private bool IsServerAlreadyExisting(string host, int port)
+        {
+            bool hostIsAlreadyInList = false;
+            bool portIsAlreadyInList = false;
+            foreach (ServerModel item in Servers)
+            {
+                if (item.Host == host)
+                    hostIsAlreadyInList = true;
+                if (item.Port == port)
+                    portIsAlreadyInList = true;
+            }
+            return (hostIsAlreadyInList && portIsAlreadyInList);
+        }
+
+        public void RemoveServer(ServerModel server)
+        {
+            Servers.Remove(server);
+        }
+
+        public void AddLog(string type, string content)
+        {
+            Logs.Add(new LogModel(type, content));
+        }
+
+        public void ClearLogs()
+        {
+            Logs.Clear();
+        }
 
     }
 }
