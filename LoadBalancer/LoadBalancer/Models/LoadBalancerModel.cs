@@ -1,4 +1,5 @@
 ﻿using LoadBalancer.DataTypes;
+using LoadBalancer.Models.BalanceStrategy;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +17,7 @@ namespace LoadBalancer.Models
         public bool LoadBalancerIsRunning { get; set; }
         public ObservableCollection<LogModel> Logs { get; }
         public ObservableCollection<ServerModel> Servers { get; }
+        public ObservableCollection<BalanceModel> Algorithms { get; }
         private Dispatcher Dispatcher;
 
         public LoadBalancerModel()
@@ -25,7 +27,9 @@ namespace LoadBalancer.Models
             LoadBalancerIsRunning = false;
             Logs = new ObservableCollection<LogModel>();
             Servers = new ObservableCollection<ServerModel>();
+            Algorithms = new ObservableCollection<BalanceModel>();
             Dispatcher = Dispatcher.CurrentDispatcher;
+            CreateLoadBalanceTypes();
             AddLog(LogType.Debug, "Debugging, it Works!");  
         }
 
@@ -74,6 +78,21 @@ namespace LoadBalancer.Models
         public void ClearLogs()
         {
             Logs.Clear();
+        }
+
+        private void CreateLoadBalanceTypes()
+        {
+            string[] balances = new string[] { "Random", "Load", "Round Robin", "Cookie Based", "Session Based" };
+            List<Strategy> strategies = new List<Strategy>();
+            strategies.Add(new RandomBalanceStrategy());
+            strategies.Add(new LoadBalanceStrategy());
+            strategies.Add(new RoundRobinBalanceStrategy());
+            strategies.Add(new CookieBasedBalanceStrategy());
+            strategies.Add(new SessionBasedBalanceStrategy());
+            for (int i = 0; i < balances.Length; i++)
+            {
+                Algorithms.Add(new BalanceModel(balances[i], strategies[i]));
+            }
         }
 
     }

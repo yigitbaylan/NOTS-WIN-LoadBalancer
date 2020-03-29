@@ -4,8 +4,8 @@ using System.Text;
 
 namespace LoadBalancer.Models.BalanceStrategy
 {
-    interface IBalanceStrategy
+    abstract class Strategy
     {
-        public ServerModel GetBalancedServer(List<ServerModel> servers);
+        public abstract ServerModel GetBalancedServer(List<ServerModel> servers);
     }
 }

@@ -33,5 +33,10 @@ namespace LoadBalancer.ViewModels
             get => This.Logs;
         }
         public void ClearLogs() => This.ClearLogs();
+
+        public ObservableCollection<BalanceModel> Algorithms
+        {
+            get => This.Algorithms;
+        }
     }
 }

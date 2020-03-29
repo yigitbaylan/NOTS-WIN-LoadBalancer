@@ -4,7 +4,11 @@ using System.Text;
 
 namespace LoadBalancer.Models.BalanceStrategy
 {
-    class SessionBasedBalanceStrategy
+    class SessionBasedBalanceStrategy : Strategy
     {
+        public override ServerModel GetBalancedServer(List<ServerModel> servers)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

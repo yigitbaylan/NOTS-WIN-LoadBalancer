@@ -61,10 +61,10 @@
                 <TextBox Grid.Row="0" HorizontalAlignment="Left" Margin="10,39,0,0"  Text="{Binding Port, Mode=TwoWay}"  TextWrapping="Wrap" VerticalAlignment="Top" Width="179"/>
 
                 <Label Content="Methoden" Grid.Row="1" HorizontalAlignment="Left" Margin="8,2,0,0" VerticalAlignment="Top"/>
-                <ListView Grid.Row="1" Margin="10,30,10,10">
+                <ListView Grid.Row="1" Margin="10,30,10,10" ItemsSource="{Binding Algorithms}">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Width="240"/>
+                            <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Name}" />
                         </GridView>
                     </ListView.View>
                 </ListView>
