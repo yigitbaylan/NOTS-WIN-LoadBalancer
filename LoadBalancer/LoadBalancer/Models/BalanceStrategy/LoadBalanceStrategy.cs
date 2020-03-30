@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace LoadBalancer.Models.BalanceStrategy
 {
     class LoadBalanceStrategy : Strategy
     {
-        public override ServerModel GetBalancedServer(List<ServerModel> servers)
+        public override ServerModel GetBalancedServer(ObservableCollection<ServerModel> servers)
         {
             int lowestLoad = -1;
             int highestLoad = 0;

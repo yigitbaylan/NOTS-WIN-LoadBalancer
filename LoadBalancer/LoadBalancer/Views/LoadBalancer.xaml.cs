@@ -55,5 +55,10 @@ namespace LoadBalancer
             ServerModel server = (ServerModel)ServerList.SelectedItems[0];
             loadBalancerViewModal.RemoveServer(server);
         }
+
+        private void StartStopBtn_Click(object sender, RoutedEventArgs e)
+        {
+            loadBalancerViewModal.ToggleLoadBalancer();
+        }
     }
 }

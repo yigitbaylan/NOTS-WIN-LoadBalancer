@@ -24,12 +24,13 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <Label Content="Servers:" HorizontalAlignment="Left" Margin="8,5,0,0" Grid.Row="0" VerticalAlignment="Top"/>
-                <ListView ItemsSource="{Binding Servers}" Name="ServerList" Grid.Row="0" Margin="10,30,0,10">
+                <ListView ItemsSource="{Binding Servers, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="ServerList" Grid.Row="0" Margin="10,30,0,10">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Added on" DisplayMemberBinding="{Binding TimeCreated}" />
                             <GridViewColumn Header="Host" DisplayMemberBinding="{Binding Host}" />
                             <GridViewColumn Header="Port" DisplayMemberBinding="{Binding Port}" />
+                            <GridViewColumn Header="Requests Handled" DisplayMemberBinding="{Binding RequestHandledCount, UpdateSourceTrigger=PropertyChanged}" />
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -57,7 +58,7 @@
                 </Grid.RowDefinitions>
 
                 <Label Content="Poort:"  Grid.Row="0" HorizontalAlignment="Left" Margin="7,13,0,0" VerticalAlignment="Top"/>
-                <Button Name="StartStopBtn" Content="{Binding StartStopBtn, Mode=OneWay}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Left" Margin="194,39,0,0" VerticalAlignment="Top" Height="18" Width="63"/>
+                <Button x:Name="StartStopBtn" Content="{Binding StartStopBtn, Mode=OneWay}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Left" Margin="194,39,0,0" VerticalAlignment="Top" Height="18" Width="63" Click="StartStopBtn_Click"/>
                 <TextBox Grid.Row="0" HorizontalAlignment="Left" Margin="10,39,0,0"  Text="{Binding Port, Mode=TwoWay}"  TextWrapping="Wrap" VerticalAlignment="Top" Width="179"/>
 
                 <Label Content="Methoden" Grid.Row="1" HorizontalAlignment="Left" Margin="8,2,0,0" VerticalAlignment="Top"/>

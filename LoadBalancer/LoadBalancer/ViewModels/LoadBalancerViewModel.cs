@@ -22,9 +22,14 @@ namespace LoadBalancer.ViewModels
         }
         public ObservableCollection<ServerModel> Servers
         {
-            get => This.Servers;
+            get  { return This.Servers; }
+            set  { SetProperty(This.Servers, value, () => This.Servers = value); }
         }
 
+        internal void ToggleLoadBalancer()
+        {
+            This.ToggleLoadBalancer();
+        }
 
         public void AddServer(string host, int port) => This.AddServer(host, port);
         public void RemoveServer(ServerModel server) => This.RemoveServer(server);
