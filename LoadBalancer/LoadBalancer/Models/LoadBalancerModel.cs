@@ -73,7 +73,7 @@ namespace LoadBalancer.Models
                 while(LoadBalancerIsRunning)
                 {
                     ClientModel clientModel = new ClientModel(await tcpListener.AcceptTcpClientAsync());
-                    Task.Run(() => HandleRequest(clientModel));
+                    await Task.Run(() => HandleRequest(clientModel));
                 }
             }
             catch
