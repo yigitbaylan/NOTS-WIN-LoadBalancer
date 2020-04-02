@@ -1,12 +1,16 @@
 ﻿using LoadBalancer.DataTypes;
 using LoadBalancer.Models.BalanceStrategy;
+using LoadBalancer.Models.HTTP;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Data;
 using System.Windows.Threading;
 
@@ -14,6 +18,7 @@ namespace LoadBalancer.Models
 {
     class LoadBalancerModel
     {
+        #region Variables
         private TcpListener tcpListener;
         public int Port { get; set; }
         public string StartStopBtn { get; set; }
@@ -21,10 +26,14 @@ namespace LoadBalancer.Models
         public ObservableCollection<LogModel> Logs { get; }
         public ObservableCollection<ServerModel> Servers { get; set; }
         public ObservableCollection<BalanceModel> Algorithms { get; }
+        public List<ServerSessionModel> Sessions { get; set; }
         public BalanceModel activeBalanceModel { get; set; }
         private int BufferSize = 1024;
         private Dispatcher Dispatcher;
+        private System.Timers.Timer HealthMonitorTimer;
+        #endregion
 
+        #region Constructor
         public LoadBalancerModel()
         {
             Port = 8080;
@@ -34,30 +43,33 @@ namespace LoadBalancer.Models
             Servers = new ObservableCollection<ServerModel>();
             Algorithms = new ObservableCollection<BalanceModel>();
             Dispatcher = Dispatcher.CurrentDispatcher;
+            Sessions = new List<ServerSessionModel>();
             CreateLoadBalanceTypes();
             CreateInitialServers();
-            AddLog(LogType.Debug, "Debugging, it Works!");  
         }
+        #endregion
 
+        #region Tcp Listener
         public void ToggleLoadBalancer()
         {
             if (LoadBalancerIsRunning)
             {
+                StopTimer();
                 tcpListener.Stop();
                 LoadBalancerIsRunning = false;
                 StartStopBtn = "Start";
-                AddLog(LogType.LoadBalancer, "Loadbalancer is been shutdown");
+                AddLog(LogType.LoadBalancer, "Loadbalancer is idle");
             }
             else
             {
                 try
                 {
                     tcpListener = new TcpListener(IPAddress.Any, Port);
-                    tcpListener.Start();
-                    Task.Run(() => ListenToRequests());
                     StartStopBtn = "Stop";
                     LoadBalancerIsRunning = true;
-                    AddLog(LogType.LoadBalancer, "Started listening on port: " + Port);
+                    tcpListener.Start();
+                    SetTimer();
+                    Task.Run(() => ListenToRequests());
                 }
                 catch (Exception)
                 {
@@ -65,15 +77,15 @@ namespace LoadBalancer.Models
                 }
             }
         }
-
-        private async void ListenToRequests()
+        private void ListenToRequests()
         {
             try
             {
-                while(LoadBalancerIsRunning)
+                AddLog(LogType.LoadBalancer, "Started listening on port: " + Port);
+                while (LoadBalancerIsRunning)
                 {
-                    ClientModel clientModel = new ClientModel(await tcpListener.AcceptTcpClientAsync());
-                    await Task.Run(() => HandleRequest(clientModel));
+                    ClientModel client = new ClientModel(tcpListener.AcceptTcpClient());
+                    HandleRequest(client);
                 }
             }
             catch
@@ -82,31 +94,77 @@ namespace LoadBalancer.Models
             }
         }
 
-        private async Task HandleRequest(ClientModel ClientModel)
+        private void HandleRequest(ClientModel Client)
         {
             try
             {
-                using (ClientModel)
+                using (Client)
                 {
-                    byte[] requestBuffer = await ClientModel.GetRequestAsByteArray(BufferSize);
-
-                    ServerModel server = activeBalanceModel.Strategy.GetBalancedServer(Servers);
-
-                    await server.SendRequest(requestBuffer, BufferSize);
-                    byte[] response = await server.GetResponseAsByteArray(BufferSize);
-                    Dispatcher.Invoke(() =>
+                    try
                     {
-                        server.incrementRequest();
-                        CollectionViewSource.GetDefaultView(Servers).Refresh();
-                    });
-                    await ClientModel.SendResponse(response, BufferSize);
+                        byte[] requestBuffer = Client.Receive(BufferSize);
+                        HttpRequestModel request = HttpRequestModel.Parse(requestBuffer);
+                        ServerModel server = GetServer(request);
+                        if(server != null)
+                        {
+                            server.Connect();
+                            server.Send(request.ToByteArray());
+                            byte[] responseBuffer = server.Receive(BufferSize);
+                            HttpResponseModel response = HttpResponseModel.Parse(responseBuffer);
+                            string cookie = activeBalanceModel.Name == "Cookie Based" ? response.SetServerCookie(server.Host + ":" + server.Port) : response.GetSessionCookie();
+                            CheckForSession(cookie, server);
+                            server.Disconnect();
+                            Dispatcher.Invoke(() =>
+                            {
+                                server.incrementRequest();
+                                CollectionViewSource.GetDefaultView(Servers).Refresh();
+                            });
+                            if (responseBuffer.Length > 100)
+                                Client.Send(response.ToByteArray());
+                            else
+                                Client.Send(HttpResponseModel.Get503Error().ToByteArray());
+                        }
+                        else
+                            Client.Send(HttpResponseModel.Get503Error().ToByteArray());
+
+                    }
+                    catch (Exception)
+                    {
+                        Client.Send(HttpResponseModel.Get503Error().ToByteArray());
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                AddLog(LogType.Client, "Lost connection with client");
+                AddLog(LogType.Client, "Lost connection with client\r\n" + e.Message);
             }
         }
+
+        private void CheckForSession(string cookie, ServerModel server)
+        {
+            if (cookie.Contains("connect.sid"))
+            { 
+                List<string> sessionIdList = cookie.Split(";").Where(cookie => cookie.Contains("connect.sid")).ToList();
+                if(sessionIdList.Count != 0)
+                {
+                    List<string> expiresList = cookie.Split(";").Where(cookie => cookie.Contains("Expires")).ToList();
+                    string serverString = server.Host + ":" + server.Port;
+                    string id = sessionIdList[0].Split("=")[1];
+                    string expires = expiresList.Count != 0 ? expiresList[0].Split("=")[1] : "Wed, 01 Apr 1990 09:22:42 GMT";
+                    Sessions.Add(new ServerSessionModel(id, serverString, expires));
+                }
+            }
+        }
+
+        private void CheckSessions()
+        {
+            List<ServerSessionModel> expiredSessions = Sessions.Where(session => session.IsExpired()).ToList();
+            foreach (ServerSessionModel expiredSession in expiredSessions)
+            {
+                Sessions.Remove(expiredSession);
+            }
+        }
+        #endregion
 
         #region Control Server
         private void CreateInitialServers()
@@ -162,6 +220,44 @@ namespace LoadBalancer.Models
             server.Dispose();
             Servers.Remove(server);
         }
+
+        private ServerModel GetServerFromCookie(string serverCookie)
+        {
+            string host = serverCookie.Split(":")[0];
+            int port = Int32.Parse(serverCookie.Split(":")[1]);
+            List<ServerModel> filteredServers = Servers.Where(server => server.Host == host && server.Port == port).ToList();
+            return filteredServers.Count == 0 ? Algorithms[0].Strategy.GetBalancedServer(Servers) : filteredServers[0];
+        }
+        private ServerModel GetServer(HttpRequestModel request)
+        {
+            if (activeBalanceModel.Name == "Cookie Based")
+            {
+                string cookie = request.GetCookie();
+                return cookie != "NO_COOKIE" ? GetServerFromCookie(cookie) : Algorithms[0].Strategy.GetBalancedServer(Servers);
+            }
+            else if (activeBalanceModel.Name == "Session Based")
+            {
+                string sessionID = request.connectedServerList();
+                return sessionID != "NO_SESSION" ? GetServerFromSession(sessionID) : Algorithms[0].Strategy.GetBalancedServer(Servers);
+            }
+            else
+                return activeBalanceModel.Strategy.GetBalancedServer(Servers);
+        }
+
+        private ServerModel GetServerFromSession(string sessionID)
+        {
+            List<ServerSessionModel> connectedServerSessionList = Sessions.Where(session => session.SessionID == sessionID).ToList();
+            if (connectedServerSessionList.Count == 0)
+                return Algorithms[0].Strategy.GetBalancedServer(Servers);
+            else
+            {
+                string serverString = connectedServerSessionList[0].Server;
+                string host = serverString.Split(":")[0];
+                int port = Int32.Parse(serverString.Split(":")[1]);
+                List<ServerModel> filteredServers = Servers.Where(server => server.Host == host && server.Port == port).ToList();
+                return filteredServers.Count == 0 ? Algorithms[0].Strategy.GetBalancedServer(Servers) : filteredServers[0];
+            }
+        }
         #endregion
 
         #region Log Settings
@@ -177,9 +273,45 @@ namespace LoadBalancer.Models
         {
             Logs.Clear();
         }
+
+        public void CheckServersHealth()
+        {
+            foreach (var server in Servers)
+            {
+                try
+                {
+                    if (server.IsHealthy())
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            server.isAlive = true;
+                            CollectionViewSource.GetDefaultView(Servers).Refresh();
+                        });
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            server.isAlive = false;
+                            CollectionViewSource.GetDefaultView(Servers).Refresh();
+                        });
+                    }
+                }
+                catch (Exception)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        server.isAlive = false;
+                        CollectionViewSource.GetDefaultView(Servers).Refresh();
+                    });
+                    AddLog(LogType.Server, "Server " + server.Host + "on port " + server.Port + " is unavailable");
+                }
+
+            } 
+        }
         #endregion
 
-        #region Loadbalancer settings
+        #region Algorithms
         private void CreateLoadBalanceTypes()
         {
             string[] balances = new string[] { "Random", "Load", "Round Robin", "Cookie Based", "Session Based" };
@@ -187,19 +319,52 @@ namespace LoadBalancer.Models
             strategies.Add(new RandomBalanceStrategy());
             strategies.Add(new LoadBalanceStrategy());
             strategies.Add(new RoundRobinBalanceStrategy());
-            strategies.Add(new CookieBasedBalanceStrategy());
-            strategies.Add(new SessionBasedBalanceStrategy());
+            strategies.Add(null);
+            strategies.Add(null);
             for (int i = 0; i < balances.Length; i++)
             {
                 Algorithms.Add(new BalanceModel(balances[i], strategies[i]));
             }
-            setActiveBalanceMethod(Algorithms[2]);
+            setActiveBalanceMethod(Algorithms[0]);
         }
 
         public void setActiveBalanceMethod(BalanceModel balanceModel)
         {
             activeBalanceModel = balanceModel;
             AddLog(LogType.LoadBalancer, "Active Loadbalance method is " + balanceModel.Name);
+        }
+        #endregion
+
+        #region Timer
+        private void SetTimer()
+        {
+            HealthMonitorTimer = new System.Timers.Timer(500);
+            HealthMonitorTimer.Elapsed += OnTimedEvent;
+            HealthMonitorTimer.AutoReset = true;
+            HealthMonitorTimer.Enabled = true;
+        }
+
+        public void ResetTimer(int milliseconds)
+        {
+            StopTimer();
+            HealthMonitorTimer = new System.Timers.Timer(milliseconds);
+            HealthMonitorTimer.Elapsed += OnTimedEvent;
+            HealthMonitorTimer.AutoReset = true;
+            HealthMonitorTimer.Enabled = true;
+        }
+
+        private void StopTimer()
+        {
+            // Create a timer with a two second interval.
+            HealthMonitorTimer.Enabled = false;
+            HealthMonitorTimer.Stop();
+            HealthMonitorTimer = null;
+        }
+
+        private void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            CheckServersHealth();
+            CheckSessions();
         }
         #endregion
     }

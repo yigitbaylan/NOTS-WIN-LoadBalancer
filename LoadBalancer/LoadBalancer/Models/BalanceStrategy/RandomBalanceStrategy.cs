@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 
 namespace LoadBalancer.Models.BalanceStrategy
@@ -10,8 +11,8 @@ namespace LoadBalancer.Models.BalanceStrategy
         public override ServerModel GetBalancedServer(ObservableCollection<ServerModel> servers)
         {
             Random rnd = new Random();
-            ServerModel server = servers[rnd.Next(0, servers.Count)];
-            return server;
+            var serversAlive = servers.Where(server => server.isAlive == true);
+            return serversAlive.Skip(rnd.Next(serversAlive.Count())).FirstOrDefault(); ;
         }
     }
 }

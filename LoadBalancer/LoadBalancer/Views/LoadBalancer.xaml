@@ -31,6 +31,7 @@
                             <GridViewColumn Header="Host" DisplayMemberBinding="{Binding Host}" />
                             <GridViewColumn Header="Port" DisplayMemberBinding="{Binding Port}" />
                             <GridViewColumn Header="Requests Handled" DisplayMemberBinding="{Binding RequestHandledCount, UpdateSourceTrigger=PropertyChanged}" />
+                            <GridViewColumn Header="Is Alive" DisplayMemberBinding="{Binding isAlive}" />
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -62,14 +63,14 @@
                 <TextBox Grid.Row="0" HorizontalAlignment="Left" Margin="10,39,0,0"  Text="{Binding Port, Mode=TwoWay}"  TextWrapping="Wrap" VerticalAlignment="Top" Width="179"/>
 
                 <Label Content="Methoden" Grid.Row="1" HorizontalAlignment="Left" Margin="8,2,0,0" VerticalAlignment="Top"/>
-                <ListView Grid.Row="1" Margin="10,30,10,10" ItemsSource="{Binding Algorithms}">
+                <ListView Name="AlgorithmsList" Grid.Row="1" Margin="10,30,10,10" ItemsSource="{Binding Algorithms}">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Name}" />
                         </GridView>
                     </ListView.View>
                 </ListView>
-                <Button Content="Activeren" HorizontalAlignment="Left" Margin="194,6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="63"/>
+                <Button Content="Activeren" HorizontalAlignment="Left" Margin="194,6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="63" Click="ActivateAlgorithm_Click"/>
             </Grid>
         </Grid>
 

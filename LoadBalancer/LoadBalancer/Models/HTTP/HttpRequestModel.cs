@@ -34,6 +34,28 @@ namespace LoadBalancer.Models.HTTP
             return FirstLine.Split(' ')[1];
         }
 
+        public string GetCookie()
+        {
+            if (HasHeader("Cookie"))
+            {
+                List<string> connectedServerList = GetHeader("Cookie").Value.Split(";").Where(cookie => cookie.Contains("ConnectedServer")).ToList();
+                return connectedServerList.Count == 0 ? "NO_COOKIE" : connectedServerList[0].Split("=")[1];
+
+            }
+            return "NO_COOKIE";
+        }
+
+        public string connectedServerList()
+        {
+            if (HasHeader("Cookie"))
+            {
+                List<string> connectedServerList = GetHeader("Cookie").Value.Split(";").Where(cookie => cookie.Contains("connect.sid")).ToList();
+                return connectedServerList.Count == 0 ? "NO_SESSION" : connectedServerList[0].Split("=")[1];
+
+            }
+            return "NO_SESSION";
+        }
+
         public string OnlyAskForHeaders()
         {
             int i = FirstLine.IndexOf(" ") + 1;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 
 namespace LoadBalancer.Models.BalanceStrategy
@@ -9,27 +10,19 @@ namespace LoadBalancer.Models.BalanceStrategy
     {
         public override ServerModel GetBalancedServer(ObservableCollection<ServerModel> servers)
         {
-            int lowestLoad = -1;
-            int highestLoad = 0;
+            List<ServerModel> serversAlive = servers.Where(server => server.isAlive == true).ToList();
+            int lowestRequest = -1;
             ServerModel serverWithLowestLoad = null;
-            ServerModel serverWithHighestLoad = null;
-            foreach (ServerModel server in servers)
+            foreach (ServerModel server in serversAlive)
             {
-                if (server.RequestHandledCount >= highestLoad)
+                if (server.RequestHandledCount < lowestRequest || lowestRequest == -1)
                 {
-                    highestLoad = server.RequestHandledCount;
-                    serverWithHighestLoad = server;
-                }
-                if (server.RequestHandledCount <= lowestLoad || lowestLoad == -1)
-                {
-                    lowestLoad = server.RequestHandledCount;
+                    lowestRequest = server.RequestHandledCount;
                     serverWithLowestLoad = server;
                 }
             }
-            if (serverWithLowestLoad != null)
-                return serverWithLowestLoad;
-            
-            return serverWithHighestLoad;
+
+            return serverWithLowestLoad;
         }
     }
 }

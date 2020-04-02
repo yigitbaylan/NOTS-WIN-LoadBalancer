@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LoadBalancer.Models.HTTP;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
@@ -7,74 +8,56 @@ using System.Threading.Tasks;
 
 namespace LoadBalancer.Models
 {
-    class ServerModel : IDisposable
+    class ServerModel : CommunicationModel
     {
         public string Host { get; }
         public int Port { get; }
         public string TimeCreated { get; set; }
-        public NetworkStream NetworkStream { get; }
         public int RequestHandledCount { get; set; }
-        private TcpClient tcpClient { get; set; }
-        public MemoryStream MemoryStream { get; private set; }
+        
+        public bool isAlive { get; set; }
 
-        private bool disposedValue = false;
-
-        public ServerModel(string host, int port)
+        public ServerModel(string host, int port) : base()
         {
             Host = host;
             Port = port;
-            tcpClient = new TcpClient(Host, Port);
-            tcpClient.SendTimeout = 500;
-            tcpClient.ReceiveTimeout = 1000;
-            NetworkStream = tcpClient.GetStream();
             RequestHandledCount = 0;
+            isAlive = true;
             TimeCreated = DateTime.Now.ToString();
         }
 
-        public async Task SendRequest(byte[] request, int BufferSize)
+        public void Connect()
         {
+            Client = new TcpClient(Host, Port);
+            NetworkStream = Client.GetStream();
             MemoryStream = new MemoryStream();
-            await NetworkStream.WriteAsync(request, 0, request.Length);
         }
 
-        public async Task<byte[]> GetResponseAsByteArray(int BufferSize)
+        public void Disconnect()
         {
-            var buffer = new byte[BufferSize];
-            int bytesRead;
-            {
-                bytesRead = await NetworkStream.ReadAsync(buffer, 0, buffer.Length);
-                await MemoryStream.WriteAsync(buffer, 0, bytesRead);
-            } while (NetworkStream.DataAvailable) ;
-            return MemoryStream.GetBuffer();
+            NetworkStream.Close();
+            Client.Close();
+            MemoryStream.Dispose();
+        }
+
+        public bool IsHealthy()
+        {
+            Connect();
+            string requestString = "GET / HTTP/1.1\r\n" +
+                                    "Host: " + Host +
+                                    "Connection: close" +
+                                    "\r\n\r\n";
+            byte[] requestBuffer = Encoding.ASCII.GetBytes(requestString);
+            Send(requestBuffer);
+            byte[] responseBuffer = Receive(1024);
+            HttpResponseModel response = HttpResponseModel.Parse(responseBuffer);
+            Disconnect();
+            return response.FirstLine.Contains("200 OK");
         }
 
         public void incrementRequest()
         {
             RequestHandledCount++;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    tcpClient.Dispose();
-                    if (NetworkStream != null || MemoryStream != null)
-                    {
-                        NetworkStream.Dispose();
-                        MemoryStream.Dispose();
-                    }
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
     }
 }

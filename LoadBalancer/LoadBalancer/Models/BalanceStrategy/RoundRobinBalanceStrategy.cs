@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 
 namespace LoadBalancer.Models.BalanceStrategy
@@ -10,10 +11,12 @@ namespace LoadBalancer.Models.BalanceStrategy
         private int Position = 0;
         public override ServerModel GetBalancedServer(ObservableCollection<ServerModel> servers)
         {
-            if (Position >= servers.Count)
+            List<ServerModel> serversAlive = servers.Where(server => server.isAlive == true).ToList();
+
+            if (Position >= serversAlive.Count)
                 Position = 0;
 
-            ServerModel server = servers[Position++];
+            ServerModel server = serversAlive[Position++];
             return server;
         }
     }

@@ -52,13 +52,24 @@ namespace LoadBalancer
         private void RemoveServer_Click(object sender, RoutedEventArgs e)
         {
             // TODO Confirmation Dialog
-            ServerModel server = (ServerModel)ServerList.SelectedItems[0];
-            loadBalancerViewModal.RemoveServer(server);
+            if (AlgorithmsList.SelectedItems.Count != 0)
+            {
+                ServerModel server = (ServerModel)ServerList.SelectedItems[0];
+                loadBalancerViewModal.RemoveServer(server);
+            }
         }
 
         private void StartStopBtn_Click(object sender, RoutedEventArgs e)
         {
             loadBalancerViewModal.ToggleLoadBalancer();
+        }
+        private void ActivateAlgorithm_Click(object sender, RoutedEventArgs e)
+        {
+            if(AlgorithmsList.SelectedItems.Count != 0)
+            {
+                BalanceModel algorithm = (BalanceModel)AlgorithmsList.SelectedItems[0];
+                loadBalancerViewModal.SetAlgorithm(algorithm);
+            }
         }
     }
 }

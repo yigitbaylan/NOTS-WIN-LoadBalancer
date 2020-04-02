@@ -31,6 +31,11 @@ namespace LoadBalancer.ViewModels
             This.ToggleLoadBalancer();
         }
 
+        internal void SetAlgorithm(BalanceModel algorithm)
+        {
+            This.setActiveBalanceMethod(algorithm);
+        }
+
         public void AddServer(string host, int port) => This.AddServer(host, port);
         public void RemoveServer(ServerModel server) => This.RemoveServer(server);
         public ObservableCollection<LogModel> Logs

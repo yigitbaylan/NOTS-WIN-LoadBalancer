@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -38,22 +39,46 @@ namespace LoadBalancer.Models.HTTP
             }
         }
 
-        public HttpResponseModel GetAuthenticationResponse()
+        public string SetServerCookie(string server)
         {
-            string firstLine = "HTTP/1.1 407 Proxy Authentication Required";
-            List<HttpHeaderModel> headers = new List<HttpHeaderModel>();
-            byte[] body = new byte[0];
-            headers.Add(new HttpHeaderModel("Proxy-Authenticate", "Basic realm=\"Proxy\""));
-            headers.Add(new HttpHeaderModel("Content-Length", "0\r\n"));
+            string cookie = "ConnectedServer=" + server + "; Path=/; Expires=" + DateTime.Now.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", CultureInfo.InvariantCulture.DateTimeFormat) + "; HttpOnly";
+            if (HasHeader("Set-Cookie"))
+            {
+                DeleteHeader("Set-Cookie");
+                Headers.Add(new HttpHeaderModel("Set-Cookie", cookie));
+            }
+            else
+                Headers.Add(new HttpHeaderModel("Set-Cookie", cookie));
 
-            HttpResponseModel httpMessage = new HttpResponseModel(firstLine, headers, body);
-            return httpMessage;
+            return cookie;
         }
 
-        public HttpResponseModel Get500Error()
+
+        public string GetSessionCookie()
         {
-            string firstLine = "HTTP/1.1 500 Proxy Error";
-            byte[] body = File.ReadAllBytes("../../Assets/HTML/500.html");
+            string receivedCookie = "";
+
+            if (HasHeader("Set-Cookie"))
+                receivedCookie = GetHeader("Set-Cookie").Value;
+            return receivedCookie == "" ? "NO_SESSION" : receivedCookie;
+        }
+
+        public static HttpResponseModel Get500Error()
+        {
+            string firstLine = "HTTP/1.1 500 Internal Server Error";
+            byte[] body = File.ReadAllBytes("../../../Assets/HTML/500.html");
+            List<HttpHeaderModel> headers = new List<HttpHeaderModel>();
+
+            headers.Add(new HttpHeaderModel("Content-Type", "text/html" + "\r\n"));
+
+            HttpResponseModel httpMessage = new HttpResponseModel(firstLine, headers, body);
+
+            return httpMessage;
+        }
+        public static HttpResponseModel Get503Error()
+        {
+            string firstLine = "HTTP/1.1 503 Service Unavailable";
+            byte[] body = File.ReadAllBytes("../../../Assets/HTML/503.html");
             List<HttpHeaderModel> headers = new List<HttpHeaderModel>();
 
             headers.Add(new HttpHeaderModel("Content-Type", "text/html" + "\r\n"));
