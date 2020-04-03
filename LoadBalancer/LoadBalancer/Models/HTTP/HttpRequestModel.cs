@@ -40,7 +40,6 @@ namespace LoadBalancer.Models.HTTP
             {
                 List<string> connectedServerList = GetHeader("Cookie").Value.Split(";").Where(cookie => cookie.Contains("ConnectedServer")).ToList();
                 return connectedServerList.Count == 0 ? "NO_COOKIE" : connectedServerList[0].Split("=")[1];
-
             }
             return "NO_COOKIE";
         }

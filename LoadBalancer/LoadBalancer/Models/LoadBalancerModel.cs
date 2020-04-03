@@ -52,31 +52,38 @@ namespace LoadBalancer.Models
         #region Tcp Listener
         public void ToggleLoadBalancer()
         {
-            if (LoadBalancerIsRunning)
-            {
-                StopTimer();
-                tcpListener.Stop();
-                LoadBalancerIsRunning = false;
-                StartStopBtn = "Start";
-                AddLog(LogType.LoadBalancer, "Loadbalancer is idle");
-            }
+            if (!LoadBalancerIsRunning)
+                StartLoadbalancer();
             else
+                StopLoadBalancer();
+        }
+
+        private void StartLoadbalancer()
+        {
+            try
             {
-                try
-                {
-                    tcpListener = new TcpListener(IPAddress.Any, Port);
-                    StartStopBtn = "Stop";
-                    LoadBalancerIsRunning = true;
-                    tcpListener.Start();
-                    SetTimer();
-                    Task.Run(() => ListenToRequests());
-                }
-                catch (Exception)
-                {
-                    AddLog(LogType.Error, "Couldn't start the Loadbalancer on port " + Port + ".");
-                }
+                tcpListener = new TcpListener(IPAddress.Any, Port);
+                StartStopBtn = "Stop";
+                LoadBalancerIsRunning = true;
+                tcpListener.Start();
+                SetTimer();
+                Task.Run(() => ListenToRequests());
+            }
+            catch (Exception)
+            {
+                AddLog(LogType.Error, "Couldn't start the Loadbalancer on port " + Port + ".");
             }
         }
+
+        private void StopLoadBalancer()
+        {
+            StopTimer();
+            tcpListener.Stop();
+            LoadBalancerIsRunning = false;
+            StartStopBtn = "Start";
+            AddLog(LogType.LoadBalancer, "Loadbalancer is idle");
+        }
+
         private void ListenToRequests()
         {
             try
@@ -96,48 +103,54 @@ namespace LoadBalancer.Models
 
         private void HandleRequest(ClientModel Client)
         {
-            try
-            {
-                using (Client)
-                {
+            try {
+                using (Client) {
                     try
                     {
                         byte[] requestBuffer = Client.Receive(BufferSize);
                         HttpRequestModel request = HttpRequestModel.Parse(requestBuffer);
-                        ServerModel server = GetServer(request);
-                        if(server != null)
-                        {
-                            server.Connect();
-                            server.Send(request.ToByteArray());
-                            byte[] responseBuffer = server.Receive(BufferSize);
-                            HttpResponseModel response = HttpResponseModel.Parse(responseBuffer);
-                            string cookie = activeBalanceModel.Name == "Cookie Based" ? response.SetServerCookie(server.Host + ":" + server.Port) : response.GetSessionCookie();
-                            CheckForSession(cookie, server);
-                            server.Disconnect();
-                            Dispatcher.Invoke(() =>
-                            {
-                                server.incrementRequest();
-                                CollectionViewSource.GetDefaultView(Servers).Refresh();
-                            });
-                            if (responseBuffer.Length > 100)
-                                Client.Send(response.ToByteArray());
-                            else
-                                Client.Send(HttpResponseModel.Get503Error().ToByteArray());
-                        }
-                        else
-                            Client.Send(HttpResponseModel.Get503Error().ToByteArray());
-
+                        HandleResponse(Client, request);
                     }
-                    catch (Exception)
-                    {
+                    catch (Exception) {
                         Client.Send(HttpResponseModel.Get503Error().ToByteArray());
                     }
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 AddLog(LogType.Client, "Lost connection with client\r\n" + e.Message);
             }
+        }
+
+        private void HandleResponse(ClientModel Client, HttpRequestModel request)
+        {
+            ServerModel server = GetServer(request);
+            if (server != null)
+            {
+                byte[] response = SendRequestToServer(request, server);
+                if (response.Length > 250)
+                    Client.Send(response);
+                else
+                    Client.Send(HttpResponseModel.Get503Error().ToByteArray());
+            }
+            else
+                Client.Send(HttpResponseModel.Get503Error().ToByteArray());
+        }
+
+        private byte[] SendRequestToServer(HttpRequestModel request, ServerModel server)
+        {
+            server.Connect();
+            server.Send(request.ToByteArray());
+            byte[] responseBuffer = server.Receive(BufferSize);
+            HttpResponseModel response = HttpResponseModel.Parse(responseBuffer);
+            string cookie = activeBalanceModel.Name == "COOKIE_BASED" ? response.SetServerCookie(server.Host + ":" + server.Port) : response.GetSessionCookie();
+            CheckForSession(cookie, server);
+            server.Disconnect();
+            Dispatcher.Invoke(() =>
+            {
+                server.incrementRequest();
+                CollectionViewSource.GetDefaultView(Servers).Refresh();
+            });
+            return response.ToByteArray();
         }
 
         private void CheckForSession(string cookie, ServerModel server)
@@ -230,12 +243,12 @@ namespace LoadBalancer.Models
         }
         private ServerModel GetServer(HttpRequestModel request)
         {
-            if (activeBalanceModel.Name == "Cookie Based")
+            if (activeBalanceModel.Name == "COOKIE_BASED")
             {
                 string cookie = request.GetCookie();
                 return cookie != "NO_COOKIE" ? GetServerFromCookie(cookie) : Algorithms[0].Strategy.GetBalancedServer(Servers);
             }
-            else if (activeBalanceModel.Name == "Session Based")
+            else if (activeBalanceModel.Name == "SESSION_BASED")
             {
                 string sessionID = request.connectedServerList();
                 return sessionID != "NO_SESSION" ? GetServerFromSession(sessionID) : Algorithms[0].Strategy.GetBalancedServer(Servers);
@@ -314,7 +327,7 @@ namespace LoadBalancer.Models
         #region Algorithms
         private void CreateLoadBalanceTypes()
         {
-            string[] balances = new string[] { "Random", "Load", "Round Robin", "Cookie Based", "Session Based" };
+            string[] balances = new string[] { "Random", "Load", "Round Robin", "COOKIE_BASED", "SESSION_BASED" };
             List<Strategy> strategies = new List<Strategy>();
             strategies.Add(new RandomBalanceStrategy());
             strategies.Add(new LoadBalanceStrategy());

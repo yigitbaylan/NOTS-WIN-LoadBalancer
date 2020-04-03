@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RoundRobinAlgorithm\RoundRobinAlgorithm.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\Images\server.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

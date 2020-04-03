@@ -8,7 +8,7 @@ namespace LoadBalancer.Models
     class BalanceModel
     {
         public string Name { get; }
-        public Strategy Strategy { get; }
+        public T Strategy { get; }
 
         public BalanceModel(string name, Strategy strategy)
         {
