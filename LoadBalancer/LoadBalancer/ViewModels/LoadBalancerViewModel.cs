@@ -1,9 +1,11 @@
-﻿using LoadBalancer.Helpers;
+﻿using BalanceStrategy;
+using LoadBalancer.Helpers;
 using LoadBalancer.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
+using TCPCommunication;
 
 namespace LoadBalancer.ViewModels
 {
@@ -16,11 +18,8 @@ namespace LoadBalancer.ViewModels
             get { return This.Port; }
             set { SetProperty(This.Port, value, () => This.Port = value); }
         }
-        public string StartStopBtn
-        {
-            get { return This.StartStopBtn; }
-        }
-        public ObservableCollection<ServerModel> Servers
+
+        public ObservableCollection<Server> Servers
         {
             get  { return This.Servers; }
             set  { SetProperty(This.Servers, value, () => This.Servers = value); }
@@ -30,23 +29,32 @@ namespace LoadBalancer.ViewModels
         {
             This.ToggleLoadBalancer();
         }
+        public ObservableCollection<PersistanceModel> Persistances
+        {
+            get => This.Persistances;
+        }
 
-        internal void SetAlgorithm(BalanceModel algorithm)
+        internal void SetPersistance(PersistanceModel persistance)
+        {
+            This.setActivePersistanceMethod(persistance);
+        }
+
+        public ObservableCollection<IStrategy> Algorithms
+        {
+            get => This.Algorithms;
+        }
+
+        internal void SetAlgorithm(IStrategy algorithm)
         {
             This.setActiveBalanceMethod(algorithm);
         }
 
         public void AddServer(string host, int port) => This.AddServer(host, port);
-        public void RemoveServer(ServerModel server) => This.RemoveServer(server);
+        public void RemoveServer(Server server) => This.RemoveServer(server);
         public ObservableCollection<LogModel> Logs
         {
             get => This.Logs;
         }
         public void ClearLogs() => This.ClearLogs();
-
-        public ObservableCollection<BalanceModel> Algorithms
-        {
-            get => This.Algorithms;
-        }
     }
 }

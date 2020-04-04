@@ -1,21 +1,19 @@
-﻿using LoadBalancer.Models.HTTP;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace LoadBalancer.Models
+namespace TCPCommunication
 {
-    class CommunicationModel : IDisposable
+    public class Communication : IDisposable
     {
         protected TcpClient Client { get; set; }
         protected MemoryStream MemoryStream { get; set; }
         protected NetworkStream NetworkStream { get; set; }
 
         private bool disposedValue = false;
-        public CommunicationModel(TcpClient client = null)
+        public Communication(TcpClient client = null)
         {
             if (client != null)
             {
@@ -37,7 +35,7 @@ namespace LoadBalancer.Models
                     bytesRead = NetworkStream.Read(buffer, 0, buffer.Length);
                     MemoryStream.Write(buffer, 0, bytesRead);
                 } while (NetworkStream.DataAvailable);
-                
+
             }
             return MemoryStream.GetBuffer();
         }

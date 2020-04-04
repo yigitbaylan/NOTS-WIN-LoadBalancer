@@ -1,4 +1,5 @@
-﻿using LoadBalancer.Models;
+﻿using BalanceStrategy;
+using LoadBalancer.Models;
 using LoadBalancer.ViewModels;
 using LoadBalancer.Views;
 using System;
@@ -15,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TCPCommunication;
 
 namespace LoadBalancer
 {
@@ -52,9 +54,9 @@ namespace LoadBalancer
         private void RemoveServer_Click(object sender, RoutedEventArgs e)
         {
             // TODO Confirmation Dialog
-            if (AlgorithmsList.SelectedItems.Count != 0)
+            if (ServerList.SelectedItems.Count != 0)
             {
-                ServerModel server = (ServerModel)ServerList.SelectedItems[0];
+                Server server = (Server)ServerList.SelectedItems[0];
                 loadBalancerViewModal.RemoveServer(server);
             }
         }
@@ -63,11 +65,19 @@ namespace LoadBalancer
         {
             loadBalancerViewModal.ToggleLoadBalancer();
         }
+        private void ActivatePersistance_Click(object sender, RoutedEventArgs e)
+        {
+            if (PersistList.SelectedItems.Count != 0)
+            {
+                PersistanceModel persitance = (PersistanceModel)PersistList.SelectedItems[0];
+                loadBalancerViewModal.SetPersistance(persitance);
+            }
+        }
         private void ActivateAlgorithm_Click(object sender, RoutedEventArgs e)
         {
             if(AlgorithmsList.SelectedItems.Count != 0)
             {
-                BalanceModel algorithm = (BalanceModel)AlgorithmsList.SelectedItems[0];
+                IStrategy algorithm = (IStrategy)AlgorithmsList.SelectedItems[0];
                 loadBalancerViewModal.SetAlgorithm(algorithm);
             }
         }

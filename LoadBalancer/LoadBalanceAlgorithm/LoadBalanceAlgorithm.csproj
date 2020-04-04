@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="BalanceStrategy">
+      <HintPath>..\BalanceStrategy\bin\Debug\netcoreapp3.1\BalanceStrategy.dll</HintPath>
+    </Reference>
+    <Reference Include="TCPCommunication">
+      <HintPath>..\TCPCommunication\bin\Debug\netcoreapp3.1\TCPCommunication.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

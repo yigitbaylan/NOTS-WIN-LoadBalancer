@@ -3,20 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace LoadBalancer.Models.HTTP
+namespace HTTP
 {
-    /// <summary>
-    /// Model for a HTTP message. This consist of three variables, the firstline, the headers and the body of the message.
-    /// </summary>
-    class HttpMessageModel
+    public class HttpMessage
     {
         public string FirstLine;
-        public List<HttpHeaderModel> Headers;
+        public List<HttpHeader> Headers;
         public byte[] Body;
 
-        protected HttpMessageModel() { }
+        protected HttpMessage() { }
 
-        protected HttpMessageModel(string firstLine, List<HttpHeaderModel> headers, byte[] body)
+        protected HttpMessage(string firstLine, List<HttpHeader> headers, byte[] body)
         {
             FirstLine = firstLine;
             Headers = headers;
@@ -25,7 +22,7 @@ namespace LoadBalancer.Models.HTTP
 
         public void AddHeader(string HeaderName, string HeaderValue)
         {
-            Headers.Add(new HttpHeaderModel(HeaderName, HeaderValue));
+            Headers.Add(new HttpHeader(HeaderName, HeaderValue));
         }
         /// <summary>
         /// Update an existing header. Keep in mind that headers are case-insensitive according to RFC 7320 (https://tools.ietf.org/html/rfc7230#section-3.2).
@@ -69,7 +66,7 @@ namespace LoadBalancer.Models.HTTP
         /// </summary>
         /// <param name="HeaderName">Header name to look for</param>
         /// <returns>Returns a new HttpHeaderModel</returns>
-        public HttpHeaderModel GetHeader(string HeaderName)
+        public HttpHeader GetHeader(string HeaderName)
         {
             var filter = Headers.Where(x => x.Name.ToLower() == HeaderName.ToLower());
             if (filter.Count() > 0)
@@ -82,7 +79,7 @@ namespace LoadBalancer.Models.HTTP
         public string GetHeadersAsString()
         {
             string HeadersAsString = "";
-            foreach (HttpHeaderModel header in Headers)
+            foreach (HttpHeader header in Headers)
             {
                 HeadersAsString += header.ToString();
                 HeadersAsString += "\r\n";
@@ -111,10 +108,10 @@ namespace LoadBalancer.Models.HTTP
             return lines;
         }
 
-        protected static List<HttpHeaderModel> ReadHeaders(List<string> lines, bool firstLineIncluded = true)
+        protected static List<HttpHeader> ReadHeaders(List<string> lines, bool firstLineIncluded = true)
         {
             bool skipedFirst = false;
-            List<HttpHeaderModel> list = new List<HttpHeaderModel>();
+            List<HttpHeader> list = new List<HttpHeader>();
             foreach (string line in lines)
             {
                 if (!skipedFirst && firstLineIncluded)
@@ -139,7 +136,7 @@ namespace LoadBalancer.Models.HTTP
                         Pos++;
                     }
                     string HeaderValue = line.Substring(Pos, line.Length - Pos);
-                    list.Add(new HttpHeaderModel(HeaderName, HeaderValue));
+                    list.Add(new HttpHeader(HeaderName, HeaderValue));
                 }
             }
             return list;

@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace LoadBalancer.Models.HTTP
+namespace HTTP
 {
-    class HttpRequestModel : HttpMessageModel
+    public class HttpRequest : HttpMessage
     {
-        public HttpRequestModel(string firstline, List<HttpHeaderModel> headers, byte[] body) : base(firstline, headers, body)
+        public HttpRequest(string firstline, List<HttpHeader> headers, byte[] body) : base(firstline, headers, body)
         {
         }
 
-        public static HttpRequestModel Parse(byte[] request)
+        public static HttpRequest Parse(byte[] request)
         {
             try
             {
                 if (request.Count() == 0)
                     throw new Exception();
                 var lines = ReadLines(request);
-                return new HttpRequestModel(lines[0], ReadHeaders(lines), ReadBody(request));
+                return new HttpRequest(lines[0], ReadHeaders(lines), ReadBody(request));
             }
             catch
             {
@@ -44,7 +44,7 @@ namespace LoadBalancer.Models.HTTP
             return "NO_COOKIE";
         }
 
-        public string connectedServerList()
+        public string GetServerSessionID()
         {
             if (HasHeader("Cookie"))
             {

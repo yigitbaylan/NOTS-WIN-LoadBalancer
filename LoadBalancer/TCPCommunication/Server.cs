@@ -1,23 +1,21 @@
-﻿using LoadBalancer.Models.HTTP;
+﻿using HTTP;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace LoadBalancer.Models
+namespace TCPCommunication
 {
-    class ServerModel : CommunicationModel
+    public class Server : Communication
     {
         public string Host { get; }
         public int Port { get; }
         public string TimeCreated { get; set; }
         public int RequestHandledCount { get; set; }
-        
+
         public bool isAlive { get; set; }
 
-        public ServerModel(string host, int port) : base()
+        public Server(string host, int port) : base()
         {
             Host = host;
             Port = port;
@@ -50,7 +48,7 @@ namespace LoadBalancer.Models
             byte[] requestBuffer = Encoding.ASCII.GetBytes(requestString);
             Send(requestBuffer);
             byte[] responseBuffer = Receive(1024);
-            HttpResponseModel response = HttpResponseModel.Parse(responseBuffer);
+            HttpResponse response = HttpResponse.Parse(responseBuffer);
             Disconnect();
             return response.FirstLine.Contains("200 OK");
         }
