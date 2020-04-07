@@ -15,16 +15,16 @@ namespace LoadBalancer.Services
 
         public ObservableCollection<IStrategy> GetLoadStrategies()
         {
-            string[] files = Directory.GetFiles(@".\", "*.dll");
+            string[] files = Directory.GetFiles(@".\", "*.dll"); // Defines the path to look for DLL files
             foreach (var file in files)
             {
                 Assembly assembly = Assembly.LoadFrom(file);
-                foreach (Type type in assembly.GetTypes())
+                foreach (Type type in assembly.GetTypes()) // Gets the list of types, the parents are also included in this list
                 {
-                    if (type.GetInterfaces().Contains(typeof(IStrategy)))
+                    if (type.GetInterfaces().Contains(typeof(IStrategy))) // Checks if the type is a type of IStrategy, the balance interface
                     {
-                        IStrategy balanceStrategy = Activator.CreateInstance(type) as IStrategy;
-                        _loadBalanceStrategies.Add(balanceStrategy);
+                        IStrategy balanceStrategy = Activator.CreateInstance(type) as IStrategy; // Creates a instance of the object as an IStrategy object.
+                        _loadBalanceStrategies.Add(balanceStrategy); // Adds the strategy to the list of strategies.
                     }
                 }
             }

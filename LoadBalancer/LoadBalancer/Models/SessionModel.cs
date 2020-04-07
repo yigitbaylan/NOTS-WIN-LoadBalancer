@@ -5,13 +5,13 @@ using System.Text;
 
 namespace LoadBalancer.Models
 {
-    class ServerSessionModel
+    class SessionModel
     {
         public string SessionID { get; set; }
         public string Server { get; set; }
         public DateTime Expires { get; set; }
 
-        public ServerSessionModel(string id, string server, string HttpDate)
+        public SessionModel(string id, string server, string HttpDate)
         {
             SessionID = id;
             Server = server;
@@ -20,7 +20,10 @@ namespace LoadBalancer.Models
                     CultureInfo.InvariantCulture.DateTimeFormat,
                     DateTimeStyles.AssumeUniversal);
         }
-
+        /// <summary>
+        /// Check if the session is expired
+        /// </summary>
+        /// <returns></returns>
         public bool IsExpired()
         {
             DateTime currentTime = DateTime.Now;

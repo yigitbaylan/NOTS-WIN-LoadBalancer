@@ -12,10 +12,5 @@ namespace TCPCommunication
             Client.SendTimeout = 500;
             Client.ReceiveTimeout = 1000;
         }
-
-        public void CheckForCookies(byte[] request)
-        {
-
-        }
     }
 }

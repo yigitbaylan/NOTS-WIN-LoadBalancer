@@ -61,11 +61,5 @@ namespace HTTP
             string str = FirstLine.Substring(i);
             return "HEAD " + str;
         }
-
-        public bool CheckIfHTTPRquestIsImage()
-        {
-            string[] FileTypes = new string[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".tiff", ".bmp", ".eps", ".raw", ".ai", ".pdf", ".psd" };
-            return FileTypes.Any(type => FirstLine.Split(' ')[1].ToLower().Contains(type));
-        }
     }
 }
