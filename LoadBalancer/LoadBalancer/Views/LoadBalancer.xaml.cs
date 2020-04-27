@@ -81,5 +81,17 @@ namespace LoadBalancer
                 loadBalancerViewModal.SetAlgorithm(algorithm);
             }
         }
+        private void AddAlgorithm_Click(object sender, RoutedEventArgs e)
+        {
+           loadBalancerViewModal.AddAlogirthm();
+        }
+        private void RemoveAlgorithm_Click(object sender, RoutedEventArgs e)
+        {
+            if (AlgorithmsList.SelectedItems.Count != 0)
+            {
+                IStrategy algorithm = (IStrategy)AlgorithmsList.SelectedItems[0];
+                loadBalancerViewModal.RemoveAlogirthm(algorithm);
+            }
+        }
     }
 }

@@ -1,20 +1,18 @@
-﻿using LoadBalancer.DataTypes;
+﻿using BalanceStrategy;
+using HTTP;
+using LoadBalancer.DataTypes;
+using LoadBalancer.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Data;
 using System.Windows.Threading;
 using TCPCommunication;
-using HTTP;
-using BalanceStrategy;
-using LoadBalancer.Services;
 
 namespace LoadBalancer.Models
 {
@@ -349,7 +347,9 @@ namespace LoadBalancer.Models
         /// <returns></returns>
         private Server GetServer(HttpRequest request)
         {
-            if (activePersistanceModel.Type == "COOKIE_BASED")
+            if (activeBalanceModel == null)
+                return null;
+            else if (activePersistanceModel.Type == "COOKIE_BASED")
             {
                 string cookie = request.GetCookie();
                 return cookie != "NO_COOKIE" ? GetServerFromString(cookie) : activeBalanceModel.GetBalancedServer(Servers);
@@ -399,7 +399,7 @@ namespace LoadBalancer.Models
                         server.isAlive = false;
                         CollectionViewSource.GetDefaultView(Servers).Refresh();
                     });
-                    AddLog(LogType.Server, "Server " + server.Host + "on port " + server.Port + " is unavailable");
+                    AddLog(LogType.Server, "Server " + server.Host + " on port " + server.Port + " is unavailable");
                 }
 
             }
@@ -436,7 +436,21 @@ namespace LoadBalancer.Models
         private void CreateLoadBalanceAlgorithms()
         {
             Algorithms = BalanceStrategyService.GetLoadStrategies();
-            setActiveBalanceMethod(Algorithms[0]);
+            if (Algorithms.Count() > 1)
+                setActiveBalanceMethod(Algorithms[0]);
+        }
+
+        public void AddAlgorithm()
+        {
+            Algorithms = BalanceStrategyService.AddBalanceDLL();
+        }
+
+        public void DeleteAlgorithm(IStrategy algorithm)
+        {
+            if (algorithm == activeBalanceModel)
+                AddLog(LogType.LoadBalancer, "Can't remove a balance strategy that is in use");
+            else
+                Algorithms = BalanceStrategyService.RemoveBalanceStrategy(algorithm);
         }
         /// <summary>
         /// Sets the active balance algorithm
@@ -467,7 +481,7 @@ namespace LoadBalancer.Models
         public void setActivePersistanceMethod(PersistanceModel persistanceModel)
         {
             activePersistanceModel = persistanceModel;
-            AddLog(LogType.LoadBalancer, "Active Loadbalance method is " + persistanceModel.Name);
+            AddLog(LogType.LoadBalancer, "Active persistance method is " + persistanceModel.Name);
         }
 
         #endregion

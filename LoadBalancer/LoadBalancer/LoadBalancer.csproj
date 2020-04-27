@@ -24,15 +24,6 @@
     <Reference Include="HTTP">
       <HintPath>..\HTTP\bin\Debug\netcoreapp3.1\HTTP.dll</HintPath>
     </Reference>
-    <Reference Include="LoadBalanceAlgorithm">
-      <HintPath>..\LoadBalanceAlgorithm\bin\Debug\netcoreapp3.1\LoadBalanceAlgorithm.dll</HintPath>
-    </Reference>
-    <Reference Include="RandomBalanceAlgorithm">
-      <HintPath>..\RandomBalanceAlgorithm\bin\Debug\netcoreapp3.1\RandomBalanceAlgorithm.dll</HintPath>
-    </Reference>
-    <Reference Include="RoudRobinAlgorithm">
-      <HintPath>..\RoudRobinAlgorithm\bin\Debug\netcoreapp3.1\RoudRobinAlgorithm.dll</HintPath>
-    </Reference>
     <Reference Include="TCPCommunication">
       <HintPath>..\TCPCommunication\bin\Debug\netcoreapp3.1\TCPCommunication.dll</HintPath>
     </Reference>

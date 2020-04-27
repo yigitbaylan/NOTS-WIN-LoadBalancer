@@ -26,7 +26,7 @@ namespace LoadBalancer.Models
         /// <returns></returns>
         public bool IsExpired()
         {
-            DateTime currentTime = DateTime.Now;
+            DateTime currentTime = DateTime.UtcNow;
             return currentTime > Expires;
         }
     }

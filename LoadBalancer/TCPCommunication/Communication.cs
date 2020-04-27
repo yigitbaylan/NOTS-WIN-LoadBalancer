@@ -51,9 +51,14 @@ namespace TCPCommunication
             {
                 if (disposing)
                 {
-                    NetworkStream.Dispose();
-                    Client.Dispose();
-                    MemoryStream.Dispose();
+                    try
+                    {
+                        NetworkStream.Dispose();
+                        Client.Dispose();
+                        MemoryStream.Dispose();
+                    }
+                    catch
+                    {}
                 }
 
                 disposedValue = true;

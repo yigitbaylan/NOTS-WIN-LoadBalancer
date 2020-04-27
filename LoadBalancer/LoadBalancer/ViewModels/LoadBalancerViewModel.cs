@@ -48,6 +48,12 @@ namespace LoadBalancer.ViewModels
         {
             This.setActiveBalanceMethod(algorithm);
         }
+        internal void RemoveAlogirthm(IStrategy algorithm)
+        {
+            This.DeleteAlgorithm(algorithm);
+        }
+
+        public void AddAlogirthm() => This.AddAlgorithm();
 
         public void AddServer(string host, int port) => This.AddServer(host, port);
         public void RemoveServer(Server server) => This.RemoveServer(server);
@@ -56,5 +62,6 @@ namespace LoadBalancer.ViewModels
             get => This.Logs;
         }
         public void ClearLogs() => This.ClearLogs();
+
     }
 }
