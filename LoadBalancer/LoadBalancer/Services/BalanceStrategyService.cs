@@ -57,7 +57,7 @@ namespace LoadBalancer.Services
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.InitialDirectory = "C:\\Users\\yigit\\Documents\\Persoonlijk\\HAN\\NOTS\\WIN\\NOTS-WIN-LoadBalancer\\LoadBalancer\\DLL_files";
             openFileDialog.Filter = "DLL Bestanden (*.dll)|*.dll|Alle bestanden (*.*)|*.*";
-            openFileDialog.FilterIndex = 2;
+            openFileDialog.FilterIndex = 1;
             openFileDialog.RestoreDirectory = true;
             if (openFileDialog.ShowDialog() == true)
             {

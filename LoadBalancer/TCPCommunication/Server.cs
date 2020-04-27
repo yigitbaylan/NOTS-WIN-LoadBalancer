@@ -20,7 +20,7 @@ namespace TCPCommunication
             Host = host;
             Port = port;
             RequestHandledCount = 0;
-            isAlive = true;
+            isAlive = false;
             TimeCreated = DateTime.Now.ToString();
         }
 

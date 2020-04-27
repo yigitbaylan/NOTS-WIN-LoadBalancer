@@ -33,24 +33,6 @@ namespace LoadBalancer
             DataContext = loadBalancerViewModal;
         }
 
-        private void ClearLog_Click(object sender, RoutedEventArgs e)
-        {
-            loadBalancerViewModal.ClearLogs();
-        }
-
-        private void AddServer_Click(object sender, RoutedEventArgs e)
-        {
-            AddServerView inputDialog = new AddServerView();
-            string host;
-            int port;
-            if (inputDialog.ShowDialog() == true)
-            {
-                host = inputDialog.Host;
-                port = int.Parse(inputDialog.Port);
-                loadBalancerViewModal.AddServer(host, port);
-            }
-        }
-
         private void RemoveServer_Click(object sender, RoutedEventArgs e)
         {
             // TODO Confirmation Dialog
@@ -61,10 +43,6 @@ namespace LoadBalancer
             }
         }
 
-        private void StartStopBtn_Click(object sender, RoutedEventArgs e)
-        {
-            loadBalancerViewModal.ToggleLoadBalancer();
-        }
         private void ActivatePersistance_Click(object sender, RoutedEventArgs e)
         {
             if (PersistList.SelectedItems.Count != 0)
@@ -72,18 +50,6 @@ namespace LoadBalancer
                 PersistanceModel persitance = (PersistanceModel)PersistList.SelectedItems[0];
                 loadBalancerViewModal.SetPersistance(persitance);
             }
-        }
-        private void ActivateAlgorithm_Click(object sender, RoutedEventArgs e)
-        {
-            if(AlgorithmsList.SelectedItems.Count != 0)
-            {
-                IStrategy algorithm = (IStrategy)AlgorithmsList.SelectedItems[0];
-                loadBalancerViewModal.SetAlgorithm(algorithm);
-            }
-        }
-        private void AddAlgorithm_Click(object sender, RoutedEventArgs e)
-        {
-           loadBalancerViewModal.AddAlogirthm();
         }
         private void RemoveAlgorithm_Click(object sender, RoutedEventArgs e)
         {

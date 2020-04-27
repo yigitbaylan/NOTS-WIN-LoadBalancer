@@ -304,8 +304,11 @@ namespace LoadBalancer.Models
         /// <param name="server">Server model to remove from the pool of servers</param>
         public void RemoveServer(Server server)
         {
-            server.Dispose();
-            Servers.Remove(server);
+            if(server.isAlive)
+            {
+                server.Dispose();
+            }
+           Servers.Remove(server);
         }
 
         /// <summary>
