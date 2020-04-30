@@ -33,16 +33,23 @@ namespace LoadBalancer.Services
             bool isValidFile = regex.IsMatch(file);
             if (isValidFile)
             {
-                Assembly assembly = Assembly.LoadFrom(file);
-                foreach (Type type in assembly.GetTypes()) // Gets the list of types, the parents are also included in this list
+                try
                 {
-                    if (type.GetInterfaces().Contains(typeof(IStrategy))) // Checks if the type is a type of IStrategy, the balance interface
+                    Assembly assembly = Assembly.LoadFrom(file);
+                    foreach (Type type in assembly.GetTypes()) // Gets the list of types, the parents are also included in this list
                     {
-                        IStrategy balanceStrategy = Activator.CreateInstance(type) as IStrategy; // Creates a instance of the object as an IStrategy object.
-                        _loadBalanceStrategies.Add(balanceStrategy); // Adds the strategy to the list of strategies.
+                        if (type.GetInterfaces().Contains(typeof(IStrategy))) // Checks if the type is a type of IStrategy, the balance interface
+                        {
+                            IStrategy balanceStrategy = Activator.CreateInstance(type) as IStrategy; // Creates a instance of the object as an IStrategy object.
+                            _loadBalanceStrategies.Add(balanceStrategy); // Adds the strategy to the list of strategies.
+                        }
+                    }
+                    if(currentCount == _loadBalanceStrategies.Count())
+                    {
+                        MessageBox.Show("Unsupported DLL File");
                     }
                 }
-                if(currentCount == _loadBalanceStrategies.Count())
+                catch
                 {
                     MessageBox.Show("Unsupported DLL File");
                 }

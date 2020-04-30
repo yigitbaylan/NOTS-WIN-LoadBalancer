@@ -97,7 +97,7 @@ namespace LoadBalancer.Models
         /// <summary>
         /// Listens to request from a client
         /// </summary>
-        private void ListenToRequests()
+        private async void ListenToRequests()
         {
             try
             {
@@ -105,7 +105,7 @@ namespace LoadBalancer.Models
                 while (LoadBalancerIsRunning)
                 {
                     Client client = new Client(tcpListener.AcceptTcpClient());
-                    Task.Run(() => HandleRequest(client));
+                    await Task.Run(() => HandleRequest(client));
                 }
             }
             catch
@@ -118,7 +118,7 @@ namespace LoadBalancer.Models
         /// Reads the request of a client.
         /// </summary>
         /// <param name="Client">Client with a request</param>
-        private void HandleRequest(Client Client)
+        private async void HandleRequest(Client Client)
         {
             try {
                 using (Client) {
@@ -126,7 +126,7 @@ namespace LoadBalancer.Models
                     {
                         byte[] requestBuffer = Client.Receive(BufferSize);
                         HttpRequest request = HttpRequest.Parse(requestBuffer);
-                        HandleResponse(Client, request);
+                        await Task.Run(() => HandleResponse(Client, request));
                     }
                     catch (Exception) {
                         Client.Send(HttpResponse.Get503Error().ToByteArray());
@@ -492,7 +492,7 @@ namespace LoadBalancer.Models
         #region Timer
         private void SetTimer()
         {
-            HealthMonitorTimer = new System.Timers.Timer(800);
+            HealthMonitorTimer = new Timer(1500);
             HealthMonitorTimer.Elapsed += OnTimedEvent;
             HealthMonitorTimer.AutoReset = true;
             HealthMonitorTimer.Enabled = true;
@@ -501,7 +501,7 @@ namespace LoadBalancer.Models
         public void ResetTimer(int milliseconds)
         {
             StopTimer();
-            HealthMonitorTimer = new System.Timers.Timer(milliseconds);
+            HealthMonitorTimer = new Timer(milliseconds);
             HealthMonitorTimer.Elapsed += OnTimedEvent;
             HealthMonitorTimer.AutoReset = true;
             HealthMonitorTimer.Enabled = true;

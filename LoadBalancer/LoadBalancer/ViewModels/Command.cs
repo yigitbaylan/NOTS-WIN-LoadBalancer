@@ -10,7 +10,9 @@ namespace LoadBalancer.ViewModels
 {
     class Command : ICommand
     {
+        #pragma warning disable 67
         public event EventHandler CanExecuteChanged;
+        #pragma warning restore 67
         private readonly Action _execute = null;
         private readonly Action<IStrategy> _executeWithParam = null;
         private readonly Action<PersistanceModel> _executeWithPersistanceParam = null;
